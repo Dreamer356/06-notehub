@@ -1,23 +1,20 @@
-type Props = {
+interface ErrorMessageProps {
   message: string;
-};
-
-function ErrorAlert({ message }: Props) {
-  return (
-    <div
-      style={{
-        color: "#e53935",
-        textAlign: "center",
-        fontWeight: 600,
-        margin: "24px 0",
-        letterSpacing: "0.5px",
-      }}
-      role="alert"
-      aria-live="polite"
-    >
-      Ошибка: {message}
-    </div>
-  );
 }
 
-export default ErrorAlert;
+const ErrorMessage = ({ message }: ErrorMessageProps) => {
+  return (
+    <p
+      style={{
+        color: "red",
+        textAlign: "center",
+        fontWeight: 500,
+        marginTop: "20px"
+      }}
+    >
+      Error: {message}
+    </p>
+  );
+};
+
+export default ErrorMessage;

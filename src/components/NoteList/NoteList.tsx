@@ -1,37 +1,31 @@
 import type { Note } from "../../types/note";
-import styles from "./NoteList.module.css";
+import css from "./NoteList.module.css";
 
-type Props = {
+interface NoteListProps {
   notes: Note[];
   onDelete: (id: string) => void;
-};
-
-function NotesView({ notes, onDelete }: Props) {
-  return (
-    <section className={styles.container}>
-      <ul className={styles.items}>
-        {notes.map((note) => (
-          <li key={note.id} className={styles.card}>
-            <header className={styles.header}>
-              <h3 className={styles.heading}>{note.title}</h3>
-            </header>
-            <main className={styles.body}>
-              <p className={styles.text}>{note.content}</p>
-            </main>
-            <footer className={styles.actions}>
-              <span className={styles.label}>{note.tag}</span>
-              <button
-                className={styles.remove}
-                onClick={() => onDelete(note.id)}
-              >
-                Удалить
-              </button>
-            </footer>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
 }
 
-export default NotesView;
+export const NoteList = ({ notes, onDelete }: NoteListProps) => {
+  return (
+    <ul className={css.list}>
+      {notes.map((note) => (
+        <li key={note.id} className={css.listItem}>
+          <h2 className={css.title}>{note.title}</h2>
+          <p className={css.content}>{note.content}</p>
+
+          <div className={css.footer}>
+            <span className={css.tag}>{note.tag}</span>
+
+            <button
+              className={css.button}
+              onClick={() => onDelete(note.id)}
+            >
+              Delete
+            </button>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+};

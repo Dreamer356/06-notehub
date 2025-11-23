@@ -1,21 +1,18 @@
-import styles from "./SearchBox.module.css";
+import css from "./SearchBox.module.css";
 
-type Props = {
-  query: string;
-  onUpdate: (input: string) => void;
-};
-
-function FilterInput({ query, onUpdate }: Props) {
-  return (
-    <input
-      type="search"
-      className={styles.field}
-      placeholder="Поиск заметок"
-      value={query}
-      onChange={e => onUpdate(e.target.value)}
-      autoComplete="off"
-    />
-  );
+interface SearchBoxProps {
+  value: string;
+  onChange: (value: string) => void;
 }
 
-export default FilterInput;
+export const SearchBox = ({ value, onChange }: SearchBoxProps) => {
+  return (
+    <input
+      type="text"
+      className={css.input}
+      placeholder="Search notes"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  );
+};

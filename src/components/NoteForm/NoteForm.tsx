@@ -1,89 +1,103 @@
-import { Formik, Form, Field, ErrorMessage as FormikError } from "formik";
+import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 
 import type { NoteTag } from "../../types/note";
-import styles from "./NoteForm.module.css";
+import css from "./NoteForm.module.css";
 
-type Props = {
-  onSubmit: (note: {
+interface NoteFormProps {
+  onSubmit: (data: {
     title: string;
     content: string;
     tag: NoteTag;
   }) => void;
+
   onCancel: () => void;
-};
+}
 
-const defaultValues = {
-  title: "",
-  content: "",
-  tag: "Todo" as NoteTag,
-};
+export const NoteForm = ({ onSubmit, onCancel }: NoteFormProps) => {
+ 
+  const initialValues = {
+    title: "",
+    content: "",
+    tag: "Todo" as NoteTag,
+  };
 
-const schema = Yup.object().shape({
-  title: Yup.string()
-    .min(3, "Минимум 3 символа")
-    .max(50, "Максимум 50 символов")
-    .required("Поле обязательно"),
-  content: Yup.string()
-    .max(500, "Максимум 500 символов"),
-  tag: Yup.mixed<NoteTag>()
-    .oneOf(["Todo", "Work", "Personal", "Meeting", "Shopping"], "Некорректный тег")
-    .required("Обязательный тег"),
-});
 
-function NoteDialog({ onSubmit, onCancel }: Props) {
+  const validationSchema = Yup.object({
+    title: Yup.string()
+      .min(3, "Title must be at least 3 characters")
+      .max(50, "Title must not exceed 50 characters")
+      .required("Title is required"),
+
+    content: Yup.string()
+      .max(500, "Content must not exceed 500 characters"),
+
+    tag: Yup.mixed<NoteTag>()
+      .oneOf(["Todo", "Work", "Personal", "Meeting", "Shopping"])
+      .required("Tag is required"),
+  });
+
   return (
     <Formik
-      initialValues={defaultValues}
-      validationSchema={schema}
+      initialValues={initialValues}
+      validationSchema={validationSchema}
       onSubmit={(values) => onSubmit(values)}
     >
       {({ isSubmitting }) => (
-        <Form className={styles.panel}>
-          <div className={styles.group}>
-            <label htmlFor="title">Заголовок</label>
-            <Field id="title" name="title" type="text" className={styles.input} />
-            <FormikError name="title" component="span" className={styles.error} />
+        <Form className={css.form}>
+       
+          <div className={css.formGroup}>
+            <label htmlFor="title">Title</label>
+            <Field id="title" name="title" type="text" className={css.input} />
+            <ErrorMessage name="title" component="span" className={css.error} />
           </div>
 
-          <div className={styles.group}>
-            <label htmlFor="content">Описание</label>
+     
+          <div className={css.formGroup}>
+            <label htmlFor="content">Content</label>
             <Field
               as="textarea"
               id="content"
               name="content"
-              rows={6}
-              className={styles.textarea}
+              rows={8}
+              className={css.textarea}
             />
-            <FormikError name="content" component="span" className={styles.error} />
+            <ErrorMessage
+              name="content"
+              component="span"
+              className={css.error}
+            />
           </div>
 
-          <div className={styles.group}>
-            <label htmlFor="tag">Метка</label>
-            <Field as="select" id="tag" name="tag" className={styles.select}>
-              {["Todo", "Work", "Personal", "Meeting", "Shopping"].map(option => (
-                <option key={option} value={option}>{option}</option>
-              ))}
+        
+          <div className={css.formGroup}>
+            <label htmlFor="tag">Tag</label>
+            <Field as="select" id="tag" name="tag" className={css.select}>
+              <option value="Todo">Todo</option>
+              <option value="Work">Work</option>
+              <option value="Personal">Personal</option>
+              <option value="Meeting">Meeting</option>
+              <option value="Shopping">Shopping</option>
             </Field>
-            <FormikError name="tag" component="span" className={styles.error} />
+            <ErrorMessage name="tag" component="span" className={css.error} />
           </div>
 
-          <div className={styles.row}>
-            <button type="button" className={styles.cancel} onClick={onCancel}>
-              Отмена
+        
+          <div className={css.actions}>
+            <button type="button" className={css.cancelButton} onClick={onCancel}>
+              Cancel
             </button>
+
             <button
               type="submit"
-              className={styles.submit}
+              className={css.submitButton}
               disabled={isSubmitting}
             >
-              Сохранить
+              Create note
             </button>
           </div>
         </Form>
       )}
     </Formik>
   );
-}
-
-export default NoteDialog;
+};
