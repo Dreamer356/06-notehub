@@ -1,36 +1,31 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import css from "./Modal.module.css";
+import styles from "./Modal.module.css";
 
-interface ModalProps {
-  onClose: () => void;
+type Props = {
   children: React.ReactNode;
-}
+  onClose: () => void;
+};
 
-export const Modal = ({ onClose, children }: ModalProps) => {
-
+function Dialog({ onClose, children }: Props) {
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+    function escHandler(event: KeyboardEvent) {
+      if (event.key === "Escape") {
         onClose();
       }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+    window.addEventListener("keydown", escHandler);
+    return () => window.removeEventListener("keydown", escHandler);
   }, [onClose]);
 
-
   return createPortal(
-    <div className={css.backdrop} onClick={onClose}>
-      <div
-        className={css.modal}
-        onClick={(e) => e.stopPropagation()} 
-      >
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.window} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>,
     document.body
   );
-};
+}
+
+export default Dialog;

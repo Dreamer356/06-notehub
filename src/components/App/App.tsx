@@ -12,89 +12,87 @@ import { NoteForm } from "../NoteForm/NoteForm";
 import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
 
-import css from "./App.module.css";
+import styles from "./App.module.css";
 
-const App = () => {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+function App() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const [debouncedSearch] = useDebounce(search, 500);
+  const [debouncedInput] = useDebounce(searchTerm, 500);
 
-  const queryClient = useQueryClient();
+  const client = useQueryClient();
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["notes", page, debouncedSearch],
-    queryFn: () => fetchNotes(page, debouncedSearch),
-    placeholderData: (prev) => prev,
+  const {
+    data: notesData,
+    isLoading: loadingNotes,
+    isError: notesError,
+    error: notesErrorObj,
+  } = useQuery({
+    queryKey: ["notes", currentPage, debouncedInput],
+    queryFn: () => fetchNotes(currentPage, debouncedInput),
+    placeholderData: prev => prev,
   });
 
-  const createMutation = useMutation({
+  const addNoteMutation = useMutation({
     mutationFn: createNote,
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["notes"],
-      });
-      setIsModalOpen(false);
+      client.invalidateQueries({ queryKey: ["notes"] });
+      setModalVisible(false);
     },
   });
 
-  const deleteMutation = useMutation({
+  const removeNoteMutation = useMutation({
     mutationFn: deleteNote,
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["notes"],
-      });
+      client.invalidateQueries({ queryKey: ["notes"] });
     },
   });
 
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    setPage(1);
+  const onSearchChange = val => {
+    setSearchTerm(val);
+    setCurrentPage(1);
   };
 
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-  };
+  const onPagination = num => setCurrentPage(num);
 
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
+  const openModal = () => setModalVisible(true);
+  const closeModal = () => setModalVisible(false);
 
   return (
-    <div className={css.app}>
-      <header className={css.toolbar}>
-        <SearchBox value={search} onChange={handleSearchChange} />
+    <div className={styles.app}>
+      <header className={styles.toolbar}>
+        <SearchBox value={searchTerm} onChange={onSearchChange} />
 
-        {data && data.totalPages > 1 && (
+        {notesData && notesData.totalPages > 1 && (
           <Pagination
-            currentPage={page}
-            pageCount={data.totalPages}
-            onPageChange={handlePageChange}
+            currentPage={currentPage}
+            pageCount={notesData.totalPages}
+            onPageChange={onPagination}
           />
         )}
 
-        <button className={css.button} onClick={handleOpenModal}>
+        <button className={styles.button} onClick={openModal}>
           Create note +
         </button>
       </header>
 
-      {isLoading && <Loader />}
-      {isError && <ErrorMessage message={(error as Error).message} />}
-
-      {data && data.notes.length > 0 && (
-        <NoteList notes={data.notes} onDelete={deleteMutation.mutate} />
+      {loadingNotes && <Loader />}
+      {notesError && (
+        <ErrorMessage message={notesErrorObj?.message || "Unknown error"} />
       )}
 
-      {isModalOpen && (
-        <Modal onClose={handleCloseModal}>
-          <NoteForm
-            onCancel={handleCloseModal}
-            onSubmit={createMutation.mutate}
-          />
+      {notesData && notesData.notes.length > 0 && (
+        <NoteList notes={notesData.notes} onDelete={removeNoteMutation.mutate} />
+      )}
+
+      {modalVisible && (
+        <Modal onClose={closeModal}>
+          <NoteForm onCancel={closeModal} onSubmit={addNoteMutation.mutate} />
         </Modal>
       )}
     </div>
   );
-};
+}
 
 export default App;
