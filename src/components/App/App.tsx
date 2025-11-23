@@ -4,68 +4,76 @@ import { useDebounce } from "use-debounce";
 
 import { fetchNotes, createNote, deleteNote } from "../../services/noteService";
 
-import NoteList from "../NoteList/NoteList";
-import SearchBox from "../SearchBox/SearchBox";
-import Pagination from "../Pagination/Pagination";
-import Modal from "../Modal/Modal";
-import NoteForm from "../NoteForm/NoteForm";
+import { NoteList } from "../NoteList/NoteList";
+import { SearchBox } from "../SearchBox/SearchBox";
+import { Pagination } from "../Pagination/Pagination";
+import { Modal } from "../Modal/Modal";
+import { NoteForm } from "../NoteForm/NoteForm";
 import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
 
 import css from "./App.module.css";
 
 const App = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [modalVisible, setModalVisible] = useState(false);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
+  const [debouncedSearch] = useDebounce(search, 500);
 
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["notes", currentPage, debouncedSearchTerm],
-    queryFn: () => fetchNotes(currentPage, debouncedSearchTerm),
+    queryKey: ["notes", page, debouncedSearch],
+    queryFn: () => fetchNotes(page, debouncedSearch),
     placeholderData: (prev) => prev,
   });
 
-  const createNoteMutation = useMutation(createNote, {
+  const createMutation = useMutation({
+    mutationFn: createNote,
     onSuccess: () => {
-      queryClient.invalidateQueries(["notes"]);
-      setModalVisible(false);
+      queryClient.invalidateQueries({
+        queryKey: ["notes"],
+      });
+      setIsModalOpen(false);
     },
   });
 
-  const deleteNoteMutation = useMutation(deleteNote, {
+  const deleteMutation = useMutation({
+    mutationFn: deleteNote,
     onSuccess: () => {
-      queryClient.invalidateQueries(["notes"]);
+      queryClient.invalidateQueries({
+        queryKey: ["notes"],
+      });
     },
   });
 
-  const handleSearchChange = (val: string) => {
-    setSearchTerm(val);
-    setCurrentPage(1);
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
   };
 
-  const openModal = () => setModalVisible(true);
-  const closeModal = () => setModalVisible(false);
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
 
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
-        <SearchBox value={searchTerm} onChange={handleSearchChange} />
+        <SearchBox value={search} onChange={handleSearchChange} />
+
         {data && data.totalPages > 1 && (
           <Pagination
-            currentPage={currentPage}
+            currentPage={page}
             pageCount={data.totalPages}
             onPageChange={handlePageChange}
           />
         )}
-        <button className={css.button} onClick={openModal}>
+
+        <button className={css.button} onClick={handleOpenModal}>
           Create note +
         </button>
       </header>
@@ -74,14 +82,14 @@ const App = () => {
       {isError && <ErrorMessage message={(error as Error).message} />}
 
       {data && data.notes.length > 0 && (
-        <NoteList notes={data.notes} onDelete={deleteNoteMutation.mutate} />
+        <NoteList notes={data.notes} onDelete={deleteMutation.mutate} />
       )}
 
-      {modalVisible && (
-        <Modal onClose={closeModal}>
+      {isModalOpen && (
+        <Modal onClose={handleCloseModal}>
           <NoteForm
-            onCancel={closeModal}
-            onSubmit={createNoteMutation.mutate}
+            onCancel={handleCloseModal}
+            onSubmit={createMutation.mutate}
           />
         </Modal>
       )}
