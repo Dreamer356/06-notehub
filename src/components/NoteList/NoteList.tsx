@@ -1,30 +1,31 @@
 import type { Note } from "../../types/note";
-import styles from "./NoteList.module.css";
+import css from "./NoteList.module.css";
 
 interface NoteListProps {
   notes: Note[];
   onDelete: (id: string) => void;
 }
 
-export const NoteList = ({ notes, onDelete }: NoteListProps) => (
-  <ul className={styles.list}>
-    {notes.map(({ id, title, content, tag }) => (
-      <li key={id} className={styles.listItem}>
-        <article>
-          <h2 className={styles.title}>{title}</h2>
-          <p className={styles.content}>{content}</p>
-          <footer className={styles.footer}>
-            <span className={styles.tag}>{tag}</span>
+export const NoteList = ({ notes, onDelete }: NoteListProps) => {
+  return (
+    <ul className={css.list}>
+      {notes.map((note) => (
+        <li key={note.id} className={css.listItem}>
+          <h2 className={css.title}>{note.title}</h2>
+          <p className={css.content}>{note.content}</p>
+
+          <div className={css.footer}>
+            <span className={css.tag}>{note.tag}</span>
+
             <button
-              className={styles.button}
-              aria-label={`Delete note titled ${title}`}
-              onClick={() => onDelete(id)}
+              className={css.button}
+              onClick={() => onDelete(note.id)}
             >
               Delete
             </button>
-          </footer>
-        </article>
-      </li>
-    ))}
-  </ul>
-);
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+};
