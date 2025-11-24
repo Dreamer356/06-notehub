@@ -18,11 +18,8 @@ export interface CreateNoteParams {
 }
 
 export interface FetchNotesResponse {
-  page: number;
-  perPage: number;
-  totalPages: number;
-  totalNotes: number;
   notes: Note[];
+  totalPages: number;
 }
 
 export interface DeleteNoteResponse {
@@ -30,18 +27,26 @@ export interface DeleteNoteResponse {
   note: Note;
 }
 
-export async function fetchNotes(page: number, search?: string): Promise<FetchNotesResponse> {
+export async function fetchNotes(
+  page: number,
+  search?: string
+): Promise<FetchNotesResponse> {
   const params: Record<string, string | number> = {
     page,
     perPage: 12,
   };
-  if (search) params.search = search;
+
+  if (search) {
+    params.search = search;
+  }
 
   const response = await noteApi.get<FetchNotesResponse>("/notes", { params });
   return response.data;
 }
 
-export async function createNote(data: CreateNoteParams): Promise<Note> {
+export async function createNote(
+  data: CreateNoteParams
+): Promise<Note> {
   const response = await noteApi.post<Note>("/notes", data);
   return response.data;
 }
