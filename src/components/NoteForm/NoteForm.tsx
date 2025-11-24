@@ -5,16 +5,21 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { NoteTag } from "../../types/note";
 import css from "./NoteForm.module.css";
 
-// Функция создания заметки - заменить на ваш API вызов
-async function createNote(data: { title: string; content: string; tag: NoteTag }) {
+// Типы для параметров создания заметки
+interface CreateNoteParams {
+  title: string;
+  content: string;
+  tag: NoteTag;
+}
+
+// Функция создания заметки — замените на ваш API вызов
+async function createNote(data: CreateNoteParams): Promise<CreateNoteParams> {
   const response = await fetch("/api/notes", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!response.ok) {
-    throw new Error("Failed to create note");
-  }
+  if (!response.ok) throw new Error("Failed to create note");
   return response.json();
 }
 
@@ -25,18 +30,18 @@ interface NoteFormProps {
 export const NoteForm = ({ onCancel }: NoteFormProps) => {
   const queryClient = useQueryClient();
 
-  // Инициализация мутации
-  const mutation = useMutation(createNote, {
+  // useMutation с правильными типами
+  const mutation = useMutation<CreateNoteParams, Error, CreateNoteParams>(createNote, {
     onSuccess: () => {
-      queryClient.invalidateQueries(["notes"]); // Инвалидируем кэш заметок, замените queryKey при необходимости
-      onCancel(); // Закрываем форму после успешного создания
+      queryClient.invalidateQueries(["notes"]); // Инвалидируем кэш по ключу "notes"
+      onCancel(); // Закрываем форму после успешного создания заметки
     },
   });
 
-  const initialValues = {
+  const initialValues: CreateNoteParams = {
     title: "",
     content: "",
-    tag: "Todo" as NoteTag,
+    tag: "Todo",
   };
 
   const validationSchema = Yup.object({
@@ -54,7 +59,6 @@ export const NoteForm = ({ onCancel }: NoteFormProps) => {
     <Formik
       initialValues={initialValues}
       validationSchema={validationSchema}
-      // Используем мутацию при сабмите
       onSubmit={(values, { setSubmitting }) => {
         mutation.mutate(values, {
           onSettled: () => setSubmitting(false),
